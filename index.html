@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Geoportal Wulkany</title>
+    <meta charset="UTF-8">
+    <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+    <link rel="stylesheet" href="leaflet/leaflet.css">
+    <link rel="stylesheet" href="Leaflet.fullscreen-gh-pages/dist/leaflet.fullscreen.css">
+    <script src="leaflet/leaflet.js"></script>
+    <script src="Leaflet.fullscreen-gh-pages/dist/Leaflet.fullscreen.js"></script>
+    <script src="wulkany.js"></script>
+</head>
+<body>
+    <div id="map"></div>
+    <script>
+        var mymap = L.map('map', {
+            maxZoom: 20,
+            fullscreenControl: true,
+            fullscreenControlOptions: { position: 'topleft' }
+        }).setView([20, 0], 2);
+
+        var osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        });
+
+        var sat = L.tileLayer('https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, Earthstar Geographics, and the GIS User Community'
+        });
+
+        osm.addTo(mymap);
+
+        volcanoesLayer = L.geoJSON(wulkany, {
+            onEachFeature: function (feature, layer) {
+                var popupContent = "<b>" + feature.properties.nazwa + "</b><br>" +
+                                   "Ostatnia erupcja: " + feature.properties.ostatnia_erupcja + "<br>" +
+                                   "Kraj: " + feature.properties.kraj + "<br>" +
+                                   "Typ: " + feature.properties.typ + "<br>" +
+                                   "Rodzaj erupcji: " + feature.properties.rodzaj_erupcji;
+                layer.bindPopup(popupContent);
+            },
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, {
+                    radius: 8,
+                    fillColor: "#ff7800",
+                    color: "#ff7800",
+                    weight: 1,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                });
+            }
+        });
+        volcanoesLayer.addTo(mymap);
+
+        var baseMaps = {
+            "OpenStreetMap": osm,
+            "Satelitarna (NASA)": sat
+        };
+
+        var overlayMaps = {
+            "Wulkany": volcanoesLayer
+        };
+
+        L.control.layers(baseMaps, overlayMaps, { position: 'topright' }).addTo(mymap);
+
+        L.control.scale().addTo(mymap);
+    </script>
+</body>
+</html>
